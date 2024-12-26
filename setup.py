@@ -17,7 +17,7 @@ with open("README.md", "r", encoding="utf-8") as f:
 
 setup(
     name="jformat",
-    version="0.0.3",
+    version="0.0.4",
     packages=find_packages(),
     include_package_data=True,  # This is important for including non-Python files
     install_requires=INSTALL_REQUIRES,  
