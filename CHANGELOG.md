@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Explicit `--no-sort` flag to disable JSON key sorting
 
 ### Changed
-- Migrated from Click to argparse for command-line argument parsing
+- Migrated from Click to Argparse for command-line argument parsing
 - Restructured command-line interface while maintaining the same functionality
 - Updated help messages and argument descriptions for better clarity
 - Improved error message formatting
