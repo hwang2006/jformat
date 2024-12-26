@@ -4,52 +4,61 @@ on:
   push:
     branches:
       - main
-  tags:
-    - '*'
+    tags:
+      - 'v*'  # Only trigger on version tags starting with 'v'
 
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
+        with:
+          fetch-depth: 0  # Fetch all history for tags
+      
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-
+          cache: 'pip'  # Enable pip caching
+      
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -r requirements.txt -r requirements-dev.txt
-
+          python -m pip install build twine pytest
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+      
       - name: Clean build directory
         run: |
-          rm -rf dist/*
-
-      - name: Build the package
+          rm -rf dist/
+          rm -rf build/
+          rm -rf *.egg-info
+      
+      - name: Build package
+        run: python -m build
+      
+      - name: Run tests
+        run: pytest
+      
+      - name: Check package
         run: |
-          python -m build --sdist --wheel
-
-      - name: Run Tests
-        run: |
-          pytest tests/
-
+          twine check dist/*
+      
       - name: Publish to Test PyPI
-        if: ${{ github.ref == 'refs/heads/main' }}
+        if: github.ref == 'refs/heads/main'
         env:
           TWINE_USERNAME: ${{ secrets.TEST_PYPI_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
+          TWINE_REPOSITORY: testpypi
         run: |
-          twine upload --repository testpypi dist/*
-
+          twine upload --skip-existing dist/*
+      
       - name: Publish to PyPI
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/v')
         env:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
         run: |
           twine upload dist/*
-
